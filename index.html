@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scheda RPG Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <!-- Libreria PeerJS per il multiplayer gratuito su GitHub Pages -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     
     <style>
         :root {
@@ -36,31 +38,50 @@
             position: relative;
         }
 
-        /* --- STILE PERGAMENA UNIFICATO --- */
+        /* --- STILE PERGAMENA PREMIUM --- */
         .paper-panel {
             background-color: var(--bg-paper);
+            /* Texture carta realistica */
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4c4a0' fill-opacity='0.1'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' /%3E%3C/g%3E%3C/svg%3E");
+            
             padding: 30px;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.1);
-            border: 10px solid var(--dark-border);
+            border-radius: 8px;
+            /* Bordo decorativo */
+            border: 12px solid transparent;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h30v30H0z' fill='%23462c18'/%3E%3Cpath d='M2 2h26v26H2z' fill='%235d4037'/%3E%3C/svg%3E") 10 repeat;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 60px rgba(139, 69, 19, 0.1);
+            
             position: relative;
             margin-bottom: 20px;
-            display: none; /* Nascosto di default */
+            display: none;
             animation: fadeIn 0.5s;
         }
         .paper-panel.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* Angoli decorativi */
+        .corner {
+            position: absolute; width: 15px; height: 15px;
+            border: 2px solid var(--text-color);
+            transition: all 0.3s;
+        }
+        .tl { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+        .tr { top: 5px; right: 5px; border-left: none; border-bottom: none; }
+        .bl { bottom: 5px; left: 5px; border-right: none; border-top: none; }
+        .br { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+
         h1 { 
             text-align: center; 
             color: var(--text-color); 
-            border-bottom: 2px solid var(--text-color); 
+            border-bottom: 3px double var(--dark-border); 
             margin-top: 0; 
             padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* --- UI ELEMENTI (SETUP) --- */
+        /* --- UI ELEMENTI --- */
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
 
         input {
@@ -71,85 +92,88 @@
         }
 
         button {
-            background-color: var(--text-color); color: var(--bg-paper);
-            border: none; padding: 12px; width: 100%;
+            background-color: var(--dark-border); color: #f4e4bc;
+            border: 2px solid #2a1a0a; padding: 12px; width: 100%;
             font-family: inherit; cursor: pointer; font-size: 1rem;
-            margin-top: 10px; border-radius: 5px;
-            transition: transform 0.1s;
+            margin-top: 10px; border-radius: 4px;
+            transition: all 0.2s; text-transform: uppercase; font-weight: bold;
         }
-        button:active { transform: scale(0.95); }
-        button:hover { opacity: 0.9; }
+        button:hover { background-color: var(--accent-red); transform: translateY(-1px); }
+        button:active { transform: translateY(1px); }
 
         /* --- STATUS BAR --- */
         .status-bar {
-            position: absolute; top: -30px; right: 0;
+            position: absolute; top: -35px; right: 0;
             font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
-            background: rgba(0,0,0,0.6); padding: 4px 8px;
+            background: rgba(0,0,0,0.6); padding: 5px 10px;
             border-radius: 12px; color: #ddd;
         }
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: background 0.3s; }
         .dot.online { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+        .dot.host { background: var(--accent-gold); box-shadow: 0 0 6px var(--accent-gold); }
         .dot.offline { background: #e74c3c; }
 
-        /* --- GAME UI (Dal File B) --- */
-        .avatar { text-align: center; font-size: 1.1rem; margin-bottom: 20px; color: #555; font-style: italic; }
+        /* --- GAME UI --- */
+        .avatar { text-align: center; font-size: 1rem; margin-bottom: 20px; color: #555; font-style: italic; opacity: 0.8; }
 
         .stats-grid { 
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; 
             margin-bottom: 20px; text-align: center; 
         }
         .stat-box { 
-            border: 2px solid var(--text-color); padding: 10px; 
-            border-radius: 8px; background: rgba(255,255,255,0.3); 
+            border: 2px solid var(--dark-border); padding: 8px; 
+            border-radius: 6px; background: rgba(255,255,255,0.3); 
         }
-        .stat-value { font-size: 1.5rem; font-weight: bold; }
-        .stat-label { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; display: block; margin-top:2px;}
 
         .level-section {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(0,0,0,0.05); padding: 10px;
-            border-radius: 5px; margin-bottom: 20px; border: 1px dashed var(--dark-border);
+            border-radius: 6px; margin-bottom: 20px; border: 1px dashed var(--dark-border);
         }
-        .btn-small { width: auto; padding: 5px 15px; margin: 0; }
+        .btn-small { width: 35px; height: 35px; padding: 0; margin: 0; line-height: 1; font-size: 1.2rem; }
 
-        /* HP Bar stile File B */
+        /* HP Bar */
         .hp-container { margin-bottom: 20px; }
         .hp-bar-bg {
-            background-color: #555; height: 30px; border-radius: 15px;
-            overflow: hidden; border: 2px solid var(--text-color);
-            position: relative;
+            background: #3d2a1e; height: 30px; border-radius: 15px;
+            overflow: hidden; border: 3px solid var(--dark-border);
+            position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
         }
         .hp-bar-fill {
-            background-color: var(--accent-red); height: 100%; width: 100%;
-            transition: width 0.3s ease, background-color 0.3s;
-        }
-        .hp-text {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); color: white;
-            font-weight: bold; text-shadow: 1px 1px 2px black; font-size: 0.9rem;
-            white-space: nowrap; z-index: 2;
+            background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+            height: 100%; width: 100%;
+            transition: width 0.3s ease, background 0.3s;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.2);
         }
 
-        /* Controls stile File B */
+        /* Controls */
         .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button.heal { background-color: #2ecc71; color: black; }
-        button.damage { background-color: #c0392b; color: white; }
+        button.heal { background-color: #27ae60; border-color: #145a32; }
+        button.damage { background-color: #8e2b2b; border-color: #581212; }
+        button.share-btn { 
+            background-color: transparent; border: 1px solid var(--text-color); 
+            color: var(--text-color); padding: 5px; margin-top: 5px; 
+            width: auto; font-size: 0.8rem; display: inline-block;
+        }
+        button.share-btn:hover { background-color: rgba(0,0,0,0.05); transform: none; }
 
-        /* Party List (Cloud) */
+        /* Party List */
         .party-list { margin-top: 25px; border-top: 2px dashed var(--dark-border); padding-top: 15px; }
         .party-title { text-align: center; font-size: 0.9rem; font-weight: bold; opacity: 0.7; margin-bottom: 10px; text-transform: uppercase; }
         .party-member { 
             padding: 8px; border-bottom: 1px solid rgba(70, 44, 24, 0.2); 
-            display: flex; justify-content: space-between; font-size: 0.9rem;
+            display: flex; justify-content: space-between; font-size: 0.9rem; align-items: center;
         }
 
         .config-warning {
             background: #f1c40f; color: #4a3b10; padding: 10px;
             font-size: 0.85rem; text-align: center; border: 2px solid #d35400;
-            margin-bottom: 15px; display: none; border-radius: 4px;
+            margin-bottom: 15px; display: block; border-radius: 4px;
         }
         
-        #logMsg { text-align: center; font-size: 0.9rem; margin-top: 15px; opacity: 0.7; font-style: italic; min-height: 1.2em;}
+        #logMsg { text-align: center; font-size: 0.9rem; margin-top: 15px; opacity: 0.8; font-style: italic; min-height: 1.2em;}
 
     </style>
 </head>
@@ -160,16 +184,19 @@
     <!-- STATUS INDICATOR -->
     <div class="status-bar">
         <div id="statusDot" class="dot"></div>
-        <span id="statusText">Inizializzazione...</span>
+        <span id="statusText">Offline</span>
     </div>
 
-    <!-- PANNELLO SETUP (File A logic, File B style) -->
+    <!-- PANNELLO SETUP -->
     <div id="setupPanel" class="paper-panel active">
+        <!-- Decorazioni angoli -->
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+
         <h1>Nuovo Eroe</h1>
         
         <div id="configWarning" class="config-warning">
-            <strong>MODALITÀ OFFLINE</strong><br>
-            Nessun cloud rilevato. Gioco in locale.
+            <strong>MULTIPLAYER P2P</strong><br>
+            Nessun database richiesto.<br>Ideale per GitHub Pages.
         </div>
 
         <label>Nome Eroe</label>
@@ -178,32 +205,39 @@
         <label>Classe & Razza</label>
         <input type="text" id="inputClass" value="Guerriero Umano" placeholder="Es. Elfo Mago">
         
-        <label>Codice Stanza (Multiplayer)</label>
+        <label>Codice Stanza</label>
         <input type="text" id="inputRoom" placeholder="Es. TAVERNA" style="text-transform:uppercase; text-align:center; letter-spacing:2px; font-weight:bold; color: var(--accent-red);">
+        <div style="font-size: 0.8rem; text-align: center; opacity: 0.7; margin-top: -10px; margin-bottom: 10px;">
+            Scegli un nome unico per la tua stanza
+        </div>
 
-        <button onclick="startGame()">ENTRA NELL'AVVENTURA</button>
+        <button onclick="startGame()">ENTRA / CREA STANZA</button>
     </div>
 
-    <!-- PANNELLO GIOCO (Layout File B) -->
+    <!-- PANNELLO GIOCO -->
     <div id="gamePanel" class="paper-panel">
-        
-        <div style="text-align:center; font-size:0.7rem; margin-bottom:5px; opacity:0.6; letter-spacing:1px;" id="roomDisplay">ROOM: ???</div>
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+
+        <div style="text-align:center; margin-bottom:10px;">
+            <div style="font-size:0.7rem; margin-bottom:5px; opacity:0.6; letter-spacing:1px;" id="roomDisplay">ROOM: ???</div>
+            <button class="share-btn" onclick="copyShareLink()">🔗 Copia Link Invito</button>
+        </div>
 
         <h1 id="charNameDisplay">Nome Personaggio</h1>
         <div class="avatar" id="charClassDisplay">Classe Razza</div>
 
         <div class="stats-grid">
             <div class="stat-box">
-                <div class="stat-value" id="dispStr">10</div>
-                <div class="stat-label">Forza (STR)</div>
+                <span class="stat-label">Forza</span>
+                <span class="stat-val" id="dispStr">10</span>
             </div>
             <div class="stat-box">
-                <div class="stat-value" id="dispDmg">10</div>
-                <div class="stat-label">Danni Base</div>
+                <span class="stat-label">Danni</span>
+                <span class="stat-val" id="dispDmg">10</span>
             </div>
             <div class="stat-box">
-                <div class="stat-value" id="dispAc">10</div>
-                <div class="stat-label">Armatura (AC)</div>
+                <span class="stat-label">Armatura</span>
+                <span class="stat-val" id="dispAc">10</span>
             </div>
         </div>
 
@@ -222,22 +256,21 @@
             </div>
             <div class="hp-bar-bg">
                 <div class="hp-bar-fill" id="hpBar"></div>
-                <!-- Testo centrato sulla barra rimosso per pulizia visiva (già sopra), o mantenibile se preferito -->
             </div>
         </div>
 
         <div class="controls">
-            <button class="damage" onclick="updateHP(-5)">DANNI (-5)</button>
-            <button class="heal" onclick="updateHP(5)">CURA (+5)</button>
+            <button class="damage" onclick="updateHP(-5)">SUBISCI DANNI</button>
+            <button class="heal" onclick="updateHP(5)">RECUPERA HP</button>
         </div>
         
         <p id="logMsg">Benvenuto nel regno.</p>
 
-        <!-- Sezione Multiplayer (Cloud) -->
+        <!-- Sezione Multiplayer -->
         <div class="party-list">
             <div class="party-title">Compagni nella Stanza</div>
             <div id="partyListContainer">
-                <div style="text-align:center; opacity:0.5; font-size:0.8rem; margin-top:10px;">Nessuno qui...</div>
+                <div style="text-align:center; opacity:0.5; font-size:0.8rem; margin-top:10px;">In attesa di connessione...</div>
             </div>
         </div>
 
@@ -246,81 +279,17 @@
 
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+<script>
     // ==================================================================================
-    // ⬇️ ⬇️ ⬇️  CONFIGURAZIONE FIREBASE  ⬇️ ⬇️ ⬇️
-    // ==================================================================================
-    
-    // Per esportare l'app: Sostituisci 'null' con il tuo oggetto config tra le graffe.
-    const PERMANENT_CONFIG = null; 
-    
-    // ==================================================================================
-    // ⬆️ ⬆️ ⬆️  FINE CONFIGURAZIONE  ⬆️ ⬆️ ⬆️
+    // ⚙️ LOGICA GIOCO + P2P (Nessun Database richiesto)
     // ==================================================================================
 
     // --- VARIABILI GLOBALI ---
-    let app, auth, db;
-    let isOnline = false;
-    let currentUser = null;
-    let myDocRef = null;
-    let unsubscribeParty = null;
-    let appIdStr = 'default-app-id';
-
-    // Gestione Configurazione
-    let activeConfig = PERMANENT_CONFIG;
-    if (!activeConfig && typeof __firebase_config !== 'undefined') {
-        try {
-            activeConfig = JSON.parse(__firebase_config);
-            if (typeof __app_id !== 'undefined') appIdStr = __app_id;
-        } catch (e) { console.error(e); }
-    }
-
-    // --- INIZIALIZZAZIONE ---
-    if (activeConfig) {
-        try {
-            app = initializeApp(activeConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            isOnline = true;
-            
-            const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            };
-            initAuth();
-            
-            onAuthStateChanged(auth, user => {
-                if(user) {
-                    currentUser = user;
-                    updateStatus(true);
-                    if (document.getElementById('gamePanel').classList.contains('active')) {
-                        joinRoom(charData.room);
-                    }
-                } else {
-                    updateStatus(false, "Disconnesso");
-                }
-            });
-        } catch (e) {
-            updateStatus(false, "Err Init");
-            document.getElementById('configWarning').style.display = 'block';
-        }
-    } else {
-        document.getElementById('configWarning').style.display = 'block';
-        updateStatus(false);
-    }
-
-    // --- STATO DEL PERSONAGGIO ---
     let charData = {
+        id: 'p-' + Math.random().toString(36).substr(2, 9), // ID univoco temporaneo
         name: "Valeros",
         class: "Guerriero",
-        room: "TAVERNA",
+        room: "",
         level: 1,
         maxHp: 20,
         currentHp: 20,
@@ -329,61 +298,202 @@
         baseAc: 10
     };
 
-    // --- UI FUNCTIONS ---
-    window.startGame = async function() {
-        if (isOnline && !currentUser) {
-            log("Connessione in corso...");
-            setTimeout(() => {
-                if(!currentUser) alert("Attendere la connessione al cloud...");
-                else proceedStart();
-            }, 1000);
-            return;
+    // --- VARIABILI RETE (PeerJS) ---
+    const APP_PREFIX = "rpg-github-v1-"; // Prefisso per isolare l'app nel server pubblico
+    let peer = null;
+    let connections = []; // Lista connessioni (Solo per Host)
+    let hostConn = null;  // Connessione verso l'host (Solo per Guest)
+    let isHost = false;
+    let partyData = {};   // Stato di tutti i giocatori
+
+    // --- SETUP INIZIALE ---
+    // Controlla se c'è un parametro ?room= nella URL (per link condivisi)
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomParam = urlParams.get('room');
+        if (roomParam) {
+            document.getElementById('inputRoom').value = roomParam;
         }
-        proceedStart();
     };
 
-    function proceedStart() {
+    // --- UI FUNCTIONS ---
+    window.startGame = function() {
         // Prendi dati dal setup
         charData.name = document.getElementById('inputName').value || "Eroe";
         charData.class = document.getElementById('inputClass').value || "Avventuriero";
         let roomVal = document.getElementById('inputRoom').value.trim();
-        charData.room = (roomVal || "TAVERNA").toUpperCase();
+        
+        if(!roomVal) { alert("Inserisci un nome stanza!"); return; }
+        
+        // Pulisci nome stanza
+        charData.room = roomVal.toUpperCase().replace(/[^A-Z0-9-]/g, '');
 
         // Switch pannelli
         document.getElementById('setupPanel').classList.remove('active');
         document.getElementById('gamePanel').classList.add('active');
         
-        // Imposta UI statica
+        // Imposta UI
         document.getElementById('charNameDisplay').innerText = charData.name;
         document.getElementById('charClassDisplay').innerText = charData.class;
         document.getElementById('roomDisplay').innerText = "STANZA: " + charData.room;
 
         render();
+        initNetwork(charData.room);
+    };
 
-        if (isOnline && currentUser) {
-            joinRoom(charData.room);
+    // --- LOGICA DI RETE (Il cuore del sistema) ---
+    function initNetwork(roomName) {
+        updateStatus("Connessione...", "dot");
+        
+        const fullRoomId = APP_PREFIX + roomName;
+
+        // 1. Tenta di diventare l'HOST (creare la stanza)
+        // Proviamo a prendere l'ID della stanza. Se ci riusciamo, siamo l'host.
+        const tempPeer = new Peer(fullRoomId);
+
+        tempPeer.on('open', (id) => {
+            // Successo: Sono l'HOST
+            isHost = true;
+            peer = tempPeer;
+            updateStatus("Sei l'HOST", "dot host");
+            log("Stanza creata. Condividi il link!");
+            
+            // Inizializza il party con me stesso
+            partyData[charData.id] = charData;
+            updatePartyUI();
+
+            // Ascolta chi entra
+            peer.on('connection', (conn) => {
+                connections.push(conn);
+                conn.on('open', () => {
+                    // Invia subito lo stato attuale al nuovo arrivato
+                    conn.send({ type: 'SYNC_FULL', data: partyData });
+                });
+                conn.on('data', (data) => handleHostData(data));
+                conn.on('close', () => { /* Gestione uscita opzionale */ });
+            });
+        });
+
+        tempPeer.on('error', (err) => {
+            if (err.type === 'unavailable-id') {
+                // Errore: ID occupato -> La stanza esiste già -> Entro come GUEST
+                joinAsGuest(fullRoomId);
+            } else {
+                updateStatus("Errore Rete", "dot offline");
+                console.error("PeerJS Error:", err);
+            }
+        });
+    }
+
+    function joinAsGuest(hostId) {
+        isHost = false;
+        peer = new Peer(); // ID casuale per me
+        
+        peer.on('open', (myId) => {
+            updateStatus("Connesso (Ospite)", "dot online");
+            // Connettiti all'Host
+            hostConn = peer.connect(hostId);
+            
+            hostConn.on('open', () => {
+                log("Unito alla stanza!");
+                // Invio i miei dati all'Host
+                sendUpdate();
+            });
+
+            hostConn.on('data', (msg) => {
+                if (msg.type === 'SYNC_FULL') {
+                    partyData = msg.data;
+                    updatePartyUI();
+                }
+            });
+
+            hostConn.on('close', () => {
+                updateStatus("Host disconnesso", "dot offline");
+                alert("L'Host ha chiuso la stanza.");
+            });
+        });
+    }
+
+    // --- SINCRONIZZAZIONE DATI ---
+    
+    // Quando cambio i miei dati
+    function onMyDataChange() {
+        if (isHost) {
+            // Aggiorno il mio registro locale e invio a tutti
+            partyData[charData.id] = charData;
+            broadcastData();
+        } else if (hostConn && hostConn.open) {
+            // Invio aggiornamento all'host
+            sendUpdate();
         }
     }
 
-    // --- LOGICA DI GIOCO (Regole File B integrate) ---
+    // Guest -> Host
+    function sendUpdate() {
+        hostConn.send({ type: 'PLAYER_UPDATE', data: charData });
+    }
+
+    // Host: Riceve dati e li smista
+    function handleHostData(msg) {
+        if (msg.type === 'PLAYER_UPDATE') {
+            const p = msg.data;
+            partyData[p.id] = p; // Salva
+            broadcastData(); // Invia a tutti gli altri
+            updatePartyUI(); // Aggiorna UI Host
+        }
+    }
+
+    // Host -> Tutti i Guest
+    function broadcastData() {
+        connections.forEach(conn => {
+            if (conn.open) {
+                conn.send({ type: 'SYNC_FULL', data: partyData });
+            }
+        });
+    }
+
+    // --- UI AGGIORNAMENTI ---
+    function updatePartyUI() {
+        const list = document.getElementById('partyListContainer');
+        list.innerHTML = "";
+        
+        let count = 0;
+        Object.values(partyData).forEach(p => {
+            if(p.id !== charData.id) { 
+                const pDiv = document.createElement('div');
+                pDiv.className = 'party-member';
+                const hpPct = (p.currentHp / p.maxHp);
+                const hpColor = hpPct < 0.3 ? '#e74c3c' : '#27ae60';
+
+                pDiv.innerHTML = `
+                    <div><strong>${p.name}</strong> <small>(${p.class} Lv.${p.level})</small></div>
+                    <div style="color:${hpColor}; font-weight:bold;">${p.currentHp}/${p.maxHp}</div>`;
+                list.appendChild(pDiv);
+                count++;
+            }
+        });
+        if(count === 0) list.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:0.8rem; margin-top:10px;'>Sei solo in questa stanza...</div>";
+    }
+
+    // --- LOGICA DI GIOCO (Stessa del precedente) ---
     window.changeLevel = function(delta) {
         const oldLvl = charData.level;
         charData.level += delta;
         if(charData.level < 1) charData.level = 1;
 
-        if(charData.level > oldLvl) { // Level Up
-            charData.maxHp += 8; // Regola File B
+        if(charData.level > oldLvl) { 
+            charData.maxHp += 8; 
             charData.currentHp += 8;
-            if(charData.level % 4 === 0) charData.str += 1; // Regola File B
+            if(charData.level % 4 === 0) charData.str += 1; 
             log("LEVEL UP! Sei diventato più forte.");
-        } else if (charData.level < oldLvl) { // Level Down
+        } else if (charData.level < oldLvl) { 
             charData.maxHp -= 8;
             if(charData.currentHp > charData.maxHp) charData.currentHp = charData.maxHp;
             if(oldLvl % 4 === 0) charData.str -= 1;
             log("Livello perso...");
         }
         render();
-        sync();
+        onMyDataChange();
     }
 
     window.updateHP = function(delta) {
@@ -395,9 +505,32 @@
         else log(`Ti sei curato di ${delta} HP.`);
 
         render();
-        sync();
+        onMyDataChange();
     }
 
+    function render() {
+        let strMod = Math.floor((charData.str - 10) / 2);
+        let dmg = charData.baseDmg + strMod + Math.floor(charData.level / 2);
+        let ac = charData.baseAc + Math.floor(charData.level / 2);
+
+        document.getElementById('dispLvl').innerText = charData.level;
+        document.getElementById('dispStr').innerText = charData.str;
+        document.getElementById('dispDmg').innerText = dmg;
+        document.getElementById('dispAc').innerText = ac;
+        document.getElementById('dispHp').innerText = charData.currentHp;
+        document.getElementById('dispMaxHp').innerText = charData.maxHp;
+
+        let pct = (charData.currentHp / charData.maxHp) * 100;
+        pct = Math.max(0, Math.min(100, pct)); 
+        const bar = document.getElementById('hpBar');
+        bar.style.width = pct + "%";
+        
+        // Colori dinamici per la barra
+        if(pct < 30) bar.style.background = "#e74c3c"; 
+        else bar.style.background = "linear-gradient(180deg, #e74c3c 0%, #c0392b 100%)";
+    }
+
+    // Utility
     function log(msg) {
         const elLog = document.getElementById('logMsg');
         elLog.innerText = msg;
@@ -405,96 +538,18 @@
         setTimeout(() => { elLog.style.opacity = 0.7; }, 2000);
     }
 
-    function render() {
-        // Calcolo stats derivate
-        let strMod = Math.floor((charData.str - 10) / 2);
-        let dmg = charData.baseDmg + strMod + Math.floor(charData.level / 2);
-        let ac = charData.baseAc + Math.floor(charData.level / 2);
-
-        // Update DOM
-        document.getElementById('dispLvl').innerText = charData.level;
-        document.getElementById('dispStr').innerText = charData.str;
-        document.getElementById('dispDmg').innerText = dmg;
-        document.getElementById('dispAc').innerText = ac;
-        
-        document.getElementById('dispHp').innerText = charData.currentHp;
-        document.getElementById('dispMaxHp').innerText = charData.maxHp;
-
-        // Barra HP
-        let pct = (charData.currentHp / charData.maxHp) * 100;
-        pct = Math.max(0, Math.min(100, pct)); 
-        
-        const bar = document.getElementById('hpBar');
-        bar.style.width = pct + "%";
-        
-        if(pct < 30) bar.style.backgroundColor = "#c0392b"; // Rosso critico
-        else bar.style.backgroundColor = "#8a1c1c"; // Rosso normale
+    function updateStatus(msg, cls) {
+        document.getElementById('statusText').innerText = msg;
+        document.getElementById('statusDot').className = "dot " + cls;
     }
 
-    // --- FIREBASE SYNC (Invariato da File A per funzionamento Cloud) ---
-    async function joinRoom(room) {
-        if(!isOnline || !currentUser) return;
-
-        const collectionPath = collection(db, 'artifacts', appIdStr, 'public', 'data', 'rpg_players');
-        const docId = `${room}_${currentUser.uid}`;
-        myDocRef = doc(db, 'artifacts', appIdStr, 'public', 'data', 'rpg_players', docId);
-        
-        await sync();
-
-        const q = query(collectionPath, where("room", "==", room));
-        if (unsubscribeParty) unsubscribeParty();
-
-        unsubscribeParty = onSnapshot(q, (snapshot) => {
-            const list = document.getElementById('partyListContainer');
-            list.innerHTML = "";
-            let count = 0;
-            snapshot.forEach(d => {
-                if(d.id !== docId) { 
-                    const p = d.data();
-                    const pDiv = document.createElement('div');
-                    pDiv.className = 'party-member';
-                    const hpPct = (p.currentHp / p.maxHp);
-                    const hpColor = hpPct < 0.3 ? '#e74c3c' : '#27ae60';
-
-                    pDiv.innerHTML = `
-                        <div><strong>${p.name}</strong> (${p.level})</div>
-                        <div style="color:${hpColor}; font-weight:bold;">${p.currentHp}/${p.maxHp}</div>`;
-                    list.appendChild(pDiv);
-                    count++;
-                }
-            });
-            if(count === 0) list.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:0.8rem; margin-top:10px;'>Sei solo in questa stanza...</div>";
+    window.copyShareLink = function() {
+        const url = window.location.href.split('?')[0] + '?room=' + charData.room;
+        navigator.clipboard.writeText(url).then(() => {
+            alert("Link copiato! Invialo ai tuoi amici.");
         });
     }
 
-    async function sync() {
-        if(!isOnline || !myDocRef) return;
-        try {
-            await setDoc(myDocRef, {
-                uid: currentUser.uid,
-                room: charData.room,
-                name: charData.name,
-                class: charData.class,
-                level: charData.level,
-                currentHp: charData.currentHp,
-                maxHp: charData.maxHp,
-                str: charData.str,
-                lastUpdate: Date.now()
-            }, { merge: true });
-        } catch(e) { console.error("Sync error", e); }
-    }
-
-    function updateStatus(online, msg) {
-        const dot = document.getElementById('statusDot');
-        const txt = document.getElementById('statusText');
-        if(online) {
-            dot.className = "dot online";
-            txt.innerText = msg || "Online";
-        } else {
-            dot.className = "dot offline";
-            txt.innerText = msg || "Offline";
-        }
-    }
 </script>
 </body>
 </html>
